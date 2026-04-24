@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Canta Cuentos 🌟</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* =========================================
+       VARIABLES Y RESET
+    ========================================= */
+    :root {
+      --rojo:       #FF5A5F;
+      --rojo-suave: #FF8A8D;
+      --amarillo:   #FFD166;
+      --naranja:    #F4A261;
+      --verde:      #6BCB77;
+      --azul:       #4D96FF;
+      --crema:      #FFF8EE;
+      --cafe:       #6B4226;
+      --texto:      #3A2010;
+      --fondo:      #FFF4E4;
+      --tarjeta:    #FFFFFF;
+      --sombra:     rgba(90,40,0,0.12);
+      --radio:      24px;
+      --transicion: 0.4s cubic-bezier(.4,0,.2,1);
+    }
+    [data-tema="noche"] {
+      --fondo:    #1A1025;
+      --tarjeta:  #2A1F38;
+      --texto:    #F5E6FF;
+      --crema:    #2A1F38;
+      --sombra:   rgba(0,0,0,0.4);
+      --cafe:     #D4A8FF;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      min-height: 100vh;
+      transition: background var(--transicion), color var(--transicion);
+      overflow-x: hidden;
+    }
+
+    /* =========================================
+       FONDO ANIMADO CON ESTRELLAS/NUBES
+    ========================================= */
+    .fondo-decorativo {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .burbuja {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.18;
+      animation: flotar 8s ease-in-out infinite;
+    }
+    .burbuja:nth-child(1){ width:120px;height:120px;background:var(--rojo);   top:5%;  left:3%;  animation-delay:0s;   animation-duration:9s; }
+    .burbuja:nth-child(2){ width:80px; height:80px; background:var(--amarillo);top:20%; right:5%; animation-delay:2s;   animation-duration:7s; }
+    .burbuja:nth-child(3){ width:160px;height:160px;background:var(--azul);   bottom:10%;left:8%; animation-delay:1s;   animation-duration:11s;}
+    .burbuja:nth-child(4){ width:60px; height:60px; background:var(--verde);  bottom:20%;right:10%;animation-delay:3s;  animation-duration:8s; }
+    .burbuja:nth-child(5){ width:100px;height:100px;background:var(--naranja);top:50%; left:50%; animation-delay:1.5s; animation-duration:10s;}
+    @keyframes flotar {
+      0%,100%{ transform: translateY(0) scale(1); }
+      50%     { transform: translateY(-30px) scale(1.05); }
+    }
+
+    /* =========================================
+       LAYOUT PRINCIPAL
+    ========================================= */
+    .contenedor {
+      position: relative; z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
+    }
+
+    /* =========================================
+       HEADER
+    ========================================= */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 10px;
+      gap: 12px;
+    }
+    .logo-titulo {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-titulo h1 {
+      font-family: 'Baloo 2', cursive;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 800;
+      color: var(--rojo);
+      line-height: 1;
+    }
+    .logo-titulo h1 span { color: var(--amarillo); }
+
+    /* Mascota del header */
+    .mascota-header {
+      width: 60px; height: 60px; flex-shrink: 0;
+      animation: cabecear 3s ease-in-out infinite;
+    }
+    @keyframes cabecear {
+      0%,100%{ transform: rotate(-5deg); }
+      50%     { transform: rotate(5deg);  }
+    }
+
+    /* Botón modo noche */
+    #btn-tema {
+      background: var(--amarillo);
+      border: none; border-radius: 50px;
+      padding: 10px 18px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--sombra);
+      transition: transform 0.2s, background var(--transicion);
+      flex-shrink: 0;
+    }
+    #btn-tema:hover { transform: scale(1.12); }
+
+    /* =========================================
+       SUBTÍTULO
+    ========================================= */
+    .subtitulo {
+      text-align: center;
+      font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+      color: var(--cafe);
+      margin: 4px 0 28px;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    /* =========================================
+       PANTALLA: LISTA DE CUENTOS
+    ========================================= */
+    #pantalla-lista { animation: aparecer 0.5s ease; }
+    #pantalla-cuento { display:none; animation: aparecer 0.5s ease; }
+
+    @keyframes aparecer {
+      from { opacity:0; transform: translateY(24px); }
+      to   { opacity:1; transform: translateY(0);    }
+    }
+
+    .titulo-seccion {
+      font-family: 'Baloo 2', cursive;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--rojo);
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    /* Grid de tarjetas */
+    .grid-cuentos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .tarjeta-cuento {
+      background: var(--tarjeta);
+      border-radius: var(--radio);
+      padding: 24px 20px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px var(--sombra);
+      transition: transform var(--transicion), box-shadow var(--transicion);
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      border: 3px solid transparent;
+      position: relative; overflow: hidden;
+    }
+    .tarjeta-cuento::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 6px;
+      border-radius: var(--radio) var(--radio) 0 0;
+    }
+    .tarjeta-cuento:nth-child(1)::before { background: var(--rojo); }
+    .tarjeta-cuento:nth-child(2)::before { background: var(--azul); }
+    .tarjeta-cuento:nth-child(3)::before { background: var(--verde); }
+    .tarjeta-cuento:nth-child(4)::before { background: var(--naranja); }
+
+    .tarjeta-cuento:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 16px 40px var(--sombra);
+    }
+    .tarjeta-cuento:hover .ilustracion-tarjeta { animation-play-state: running; }
+
+    .ilustracion-tarjeta { width: 100px; height: 100px; }
+
+    .tarjeta-cuento h3 {
+      font-family: 'Baloo 2', cursive;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--texto);
+      text-align: center;
+    }
+    .tarjeta-cuento p {
+      font-size: 0.88rem;
+      color: var(--cafe);
+      text-align: center;
+      line-height: 1.4;
+      opacity: 0.85;
+    }
+    .badge-edad {
+      background: var(--amarillo);
+      color: var(--cafe);
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 20px;
+      padding: 3px 12px;
+    }
+
+    /* =========================================
+       PANTALLA: CUENTO ABIERTO
+    ========================================= */
+    #btn-volver {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--rojo);
+      color: #fff;
+      border: none; border-radius: 50px;
+      padding: 12px 24px;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--sombra);
+      transition: transform 0.2s, background 0.2s;
+      margin-bottom: 20px;
+    }
+    #btn-volver:hover { transform: scale(1.06); background: var(--rojo-suave); }
+
+    .cuento-header {
+      background: var(--tarjeta);
+      border-radius: var(--radio);
+      padding: 28px 24px 20px;
+      box-shadow: 0 6px 24px var(--sombra);
+      margin-bottom: 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .cuento-header h2 {
+      font-family: 'Baloo 2', cursive;
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 800;
+      color: var(--rojo);
+      text-align: center;
+    }
+    .ilustracion-cuento { width: 130px; height: 130px; }
+
+    /* Controles de voz */
+    .controles-voz {
+      display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+      background: var(--tarjeta);
+      border-radius: var(--radio);
+      padding: 18px 20px;
+      box-shadow: 0 4px 16px var(--sombra);
+      margin-bottom: 20px;
+    }
+    .btn-voz {
+      display: flex; align-items: center; gap: 8px;
+      border: none; border-radius: 50px;
+      padding: 14px 22px;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s;
+      box-shadow: 0 4px 12px var(--sombra);
+      font-family: 'Nunito', sans-serif;
+    }
+    .btn-voz:hover { transform: scale(1.08); }
+    .btn-voz:disabled { opacity: 0.45; cursor: default; transform: none; }
+    #btn-play  { background: var(--verde);   color: #fff; }
+    #btn-pausa { background: var(--amarillo); color: var(--cafe); }
+    #btn-stop  { background: var(--rojo);    color: #fff; }
+
+    /* Barra de progreso de voz */
+    .progreso-voz {
+      width: 100%;
+      height: 8px;
+      background: var(--fondo);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progreso-voz-barra {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--rojo), var(--amarillo));
+      border-radius: 10px;
+      transition: width 0.3s linear;
+    }
+
+    /* Texto del cuento */
+    .cuerpo-cuento {
+      background: var(--tarjeta);
+      border-radius: var(--radio);
+      padding: 28px 28px 32px;
+      box-shadow: 0 6px 24px var(--sombra);
+      font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+      line-height: 1.85;
+      color: var(--texto);
+    }
+    .cuerpo-cuento p { margin-bottom: 16px; }
+    .cuerpo-cuento p:last-child { margin-bottom: 0; }
+
+    /* Párrafo activo durante lectura */
+    .parrafo-activo {
+      background: rgba(255,209,102,0.25);
+      border-radius: 10px;
+      padding: 4px 8px;
+      transition: background 0.3s;
+    }
+
+    /* =========================================
+       ANIMACIONES SVG - PERSONAJES
+    ========================================= */
+
+    /* Oso respirando */
+    @keyframes respirar {
+      0%,100%{ transform: scale(1);    }
+      50%     { transform: scale(1.06); }
+    }
+    @keyframes ojos-parpadear {
+      0%,90%,100%{ transform: scaleY(1);   }
+      95%         { transform: scaleY(0.1); }
+    }
+    @keyframes oreja-mover {
+      0%,100%{ transform: rotate(0deg);  }
+      50%     { transform: rotate(8deg); }
+    }
+    @keyframes cola-mover {
+      0%,100%{ transform: rotate(-10deg); }
+      50%     { transform: rotate(10deg);  }
+    }
+    .cuerpo-oso  { animation: respirar 3s ease-in-out infinite; transform-origin: center; }
+    .ojo-oso     { animation: ojos-parpadear 4s ease-in-out infinite; transform-origin: center; }
+    .oreja-oso   { animation: oreja-mover 4s ease-in-out infinite; transform-origin: bottom center; }
+
+    /* Conejo saltando */
+    @keyframes conejo-saltar {
+      0%,100%{ transform: translateY(0);   }
+      40%     { transform: translateY(-8px); }
+    }
+    @keyframes oreja-conejo {
+      0%,100%{ transform: rotate(-5deg); }
+      50%     { transform: rotate(5deg);  }
+    }
+    .cuerpo-conejo { animation: conejo-saltar 2s ease-in-out infinite; transform-origin: bottom center; }
+    .oreja-conejo  { animation: oreja-conejo 1.5s ease-in-out infinite; transform-origin: bottom center; }
+
+    /* Estrellita girando */
+    @keyframes estrella-girar {
+      from{ transform: rotate(0deg) scale(1);    }
+      50% { transform: rotate(180deg) scale(1.1); }
+      to  { transform: rotate(360deg) scale(1);  }
+    }
+    @keyframes brillo-estrella {
+      0%,100%{ opacity:1; }
+      50%     { opacity:0.6; }
+    }
+    .estrellita { animation: estrella-girar 6s linear infinite, brillo-estrella 2s ease-in-out infinite; transform-origin: center; }
+
+    /* Pollito picoteando */
+    @keyframes pollito-picar {
+      0%,100%{ transform: rotate(0deg);   }
+      30%,70% { transform: rotate(15deg); }
+      50%     { transform: rotate(0deg);  }
+    }
+    @keyframes ala-pollito {
+      0%,100%{ transform: rotate(0deg);   }
+      50%     { transform: rotate(-20deg); }
+    }
+    .cabeza-pollito { animation: pollito-picar 2s ease-in-out infinite; transform-origin: bottom center; }
+    .ala-pollito    { animation: ala-pollito 1s ease-in-out infinite; transform-origin: right center; }
+
+    /* =========================================
+       FOOTER
+    ========================================= */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.85rem;
+      color: var(--cafe);
+      opacity: 0.7;
+    }
+
+    /* =========================================
+       RESPONSIVE
+    ========================================= */
+    @media (max-width: 500px) {
+      .cuento-header { padding: 20px 16px; }
+      .cuerpo-cuento { padding: 20px 16px; }
+      .controles-voz { gap: 8px; }
+      .btn-voz { padding: 12px 16px; font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===================== FONDO DECORATIVO ===================== -->
+<div class="fondo-decorativo" aria-hidden="true">
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+  <div class="burbuja"></div>
+</div>
+
+<!-- ===================== CONTENIDO PRINCIPAL ===================== -->
+<div class="contenedor">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-titulo">
+      <!-- Mascota OSO en el logo -->
+      <svg class="mascota-header" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g class="cuerpo-oso">
+          <!-- orejas -->
+          <circle class="oreja-oso" cx="14" cy="16" r="9" fill="#F4A261"/>
+          <circle cx="14" cy="16" r="5.5" fill="#FDDCB5"/>
+          <circle class="oreja-oso" cx="46" cy="16" r="9" fill="#F4A261" style="animation-delay:.5s"/>
+          <circle cx="46" cy="16" r="5.5" fill="#FDDCB5"/>
+          <!-- cuerpo -->
+          <ellipse cx="30" cy="38" rx="18" ry="16" fill="#F4A261"/>
+          <!-- cabeza -->
+          <circle cx="30" cy="24" r="17" fill="#F4A261"/>
+          <!-- hocico -->
+          <ellipse cx="30" cy="29" rx="8" ry="6" fill="#FDDCB5"/>
+          <!-- nariz -->
+          <ellipse cx="30" cy="26.5" rx="3.5" ry="2.2" fill="#6B4226"/>
+          <!-- ojos -->
+          <circle class="ojo-oso" cx="23" cy="21" r="3" fill="#3A2010"/>
+          <circle class="ojo-oso" cx="37" cy="21" r="3" fill="#3A2010" style="animation-delay:.2s"/>
+          <circle cx="24" cy="20" r="1" fill="#fff"/>
+          <circle cx="38" cy="20" r="1" fill="#fff"/>
+          <!-- sonrisa -->
+          <path d="M25 31 Q30 35 35 31" stroke="#6B4226" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <!-- panza -->
+          <ellipse cx="30" cy="42" rx="10" ry="8" fill="#FDDCB5"/>
+        </g>
+      </svg>
+      <h1>Canta<span>Cuentos</span> 🌟</h1>
+    </div>
+    <button id="btn-tema" aria-label="Cambiar modo día/noche" title="Cambiar modo">🌙</button>
+  </header>
+
+  <p class="subtitulo">✨ Un mundo mágico de historias para ti ✨</p>
+
+  <!-- ==================== PANTALLA LISTA ==================== -->
+  <div id="pantalla-lista" role="main">
+    <h2 class="titulo-seccion">📚 Elige tu cuento favorito</h2>
+    <div class="grid-cuentos" id="grid-cuentos">
+      <!-- Las tarjetas se generan con JS -->
+    </div>
+  </div>
+
+  <!-- ==================== PANTALLA CUENTO ==================== -->
+  <div id="pantalla-cuento" role="main" aria-live="polite">
+    <button id="btn-volver" aria-label="Volver a la lista de cuentos">
+      ← Volver
+    </button>
+
+    <div class="cuento-header">
+      <div id="ilustracion-cuento-grande" class="ilustracion-cuento"></div>
+      <h2 id="titulo-cuento-abierto"></h2>
+    </div>
+
+    <!-- Controles de voz -->
+    <div class="controles-voz" role="region" aria-label="Controles de narración">
+      <button id="btn-play"  class="btn-voz" aria-label="Reproducir narración">▶ Escuchar</button>
+      <button id="btn-pausa" class="btn-voz" aria-label="Pausar narración" disabled>⏸ Pausar</button>
+      <button id="btn-stop"  class="btn-voz" aria-label="Detener narración"  disabled>⏹ Detener</button>
+      <div class="progreso-voz" style="width:100%">
+        <div class="progreso-voz-barra" id="barra-progreso"></div>
+      </div>
+    </div>
+
+    <!-- Texto del cuento -->
+    <div class="cuerpo-cuento" id="texto-cuento"></div>
+  </div>
+
+</div><!-- /contenedor -->
+
+<footer>
+  Hecho con ❤️ para los pequeños soñadores · CantaCuentos 2025
+</footer>
+
+<!-- ===================== DATOS DE CUENTOS ===================== -->
+<script>
+/* ==============================================
+   DATOS: CUENTOS ORIGINALES
+   Cada cuento tiene: id, titulo, descripcion,
+   edad, personaje (para la SVG), color, texto[]
+=============================================== */
+const CUENTOS = [
+  {
+    id: 1,
+    titulo: "El Osito que tenía miedo a la oscuridad",
+    descripcion: "Bruno aprende que la noche también tiene magia.",
+    edad: "3–6 años",
+    personaje: "oso",
+    colorTema: "#F4A261",
+    texto: [
+      "Había una vez un osito pequeño llamado Bruno que vivía en un bosque lleno de árboles suaves y flores de colores.",
+      "Cada noche, cuando el sol se iba a dormir, Bruno se metía debajo de su cobija y cerraba los ojos muy fuerte. Tenía mucho miedo de la oscuridad.",
+      "—¿Y si hay algo ahí afuera? —le preguntaba a su mamá con la voz temblorosa.",
+      "Mamá Osa lo abrazó fuerte y le dijo: —Cierra los ojos, Bruno, y escucha. ¿Qué oyes?",
+      "Bruno cerró los ojos. Escuchó el canto suave de los grillos. Escuchó el viento que mecía las hojas como si fueran una canción de cuna. Escuchó el río que corría feliz a lo lejos.",
+      "—La oscuridad no está vacía —le explicó mamá—. Está llena de sonidos bonitos que te cuidan mientras duermes.",
+      "Bruno abrió un ojo y miró por la ventana. En el cielo había miles y miles de estrellitas brillando solo para él.",
+      "—¡Son como lucecitas de noche! —dijo Bruno, sorprendido.",
+      "—Sí, mi amor —dijo mamá Osa—. Las estrellas son los abraços del cielo. Nunca te dejan solo.",
+      "Desde esa noche, Bruno ya no le tuvo miedo a la oscuridad. Al contrario, esperaba con alegría el momento de ver las estrellas y escuchar la música del bosque.",
+      "Y así, rodeado de sonidos suaves y luces de plata, Bruno el osito se quedó dormido con una gran sonrisa. 🌟"
+    ]
+  },
+  {
+    id: 2,
+    titulo: "La Conejita y la Nube de Algodón",
+    descripcion: "Luna descubre que la amistad puede venir del cielo.",
+    edad: "3–7 años",
+    personaje: "conejo",
+    colorTema: "#4D96FF",
+    texto: [
+      "En la cima de una colina verde vivía una conejita llamada Luna. Le encantaba saltar, comer zanahorias y mirar el cielo azul.",
+      "Un día, una nubecita muy pequeña y esponjosa se quedó atascada entre dos ramas de un árbol. —¡Auxilio! —decía la nube con su voz suave como el algodón de azúcar.",
+      "Luna la vio y corrió a ayudarla. Con sus largas orejas empujó las ramas y la nubecita quedó libre.",
+      "—¡Gracias! —dijo la nube—. Soy Nivi. ¿Cómo te llamas?",
+      "—Soy Luna —respondió la conejita, muy contenta de tener una amiga nueva.",
+      "Desde ese día, Nivi la nube llegaba cada mañana a la colina a jugar con Luna. Le traía lluvia fresquita en los días de calor y sombra suave cuando el sol brillaba demasiado.",
+      "—¿Por qué eres tan buena conmigo? —preguntó Luna un día.",
+      "Nivi la miró con ternura y le dijo: —Porque tú me ayudaste cuando lo necesitaba. Las amistades de verdad se cuidan mutuamente.",
+      "Luna pensó en eso y sonrió. Era verdad. Un buen amigo es como una nube en verano: siempre llega justo cuando más lo necesitas.",
+      "Y así, la conejita y la nube se convirtieron en las mejores amigas del mundo, saltando y flotando juntas por siempre. 🐰☁️"
+    ]
+  },
+  {
+    id: 3,
+    titulo: "La Estrellita que quería conocer el mar",
+    descripcion: "Celi viaja desde el cielo hasta la playa en una aventura brillante.",
+    edad: "4–8 años",
+    personaje: "estrella",
+    colorTema: "#FFD166",
+    texto: [
+      "En el cielo más alto de todos vivía Celi, una estrellita pequeña pero muy curiosa. Desde arriba podía ver montañas, ciudades, bosques... y el mar.",
+      "—¿Cómo será el mar de cerca? —se preguntaba cada noche mientras brillaba.",
+      "Sus amigos le decían: —¡Es peligroso bajar! ¡Podrías perderte!",
+      "Pero Celi tenía el corazón lleno de valentía y decidió descender poco a poco, dejando un rastro de luz dorada en el cielo.",
+      "Cuando llegó a la playa, lo primero que sintió fue la brisa salada. Luego vio las olas grandes y suaves que llegaban a la orilla como si la saludaran.",
+      "—¡Hola, estrellita! —dijo el mar con su voz profunda y amable—. Bienvenida.",
+      "Celi tocó el agua y notó que brillaba igual que ella. —¿Por qué brillas tú también? —le preguntó al mar.",
+      "—Porque llevo dentro los reflejos de todas las estrellas que me visitan —respondió el mar—. Cada vez que una estrella nos ilumina, guardamos un poco de su luz.",
+      "Celi se quedó maravillada. Bailó sobre las olas, jugó con los peces plateados y escuchó las canciones que cantaban las conchas.",
+      "Cuando llegó la mañana, Celi regresó al cielo con el corazón lleno de aventura. Y cada vez que el mar brilla en la noche, es porque Celi lo está saludando desde arriba.",
+      "Y colorín colorado, esta historia de luz ha terminado. ⭐🌊"
+    ]
+  },
+  {
+    id: 4,
+    titulo: "El Pollito Pío y la semilla mágica",
+    descripcion: "Pío planta una semilla y descubre el poder de la paciencia.",
+    edad: "3–6 años",
+    personaje: "pollito",
+    colorTema: "#6BCB77",
+    texto: [
+      "En una granja alegre y colorida vivía Pío, un pollito amarillo como el sol, con un pico naranja y ojos muy redondos.",
+      "Un día, la abuela gallina le regaló una semillita pequeñita. —Plántala con amor y espera —le dijo la abuela.",
+      "Pío corrió al jardín, hizo un huequito en la tierra y colocó la semilla con mucho cuidado. —¿Cuándo va a crecer? —preguntó.",
+      "—La tierra necesita tiempo —respondió la abuela—. Y también necesita que la cuides.",
+      "Pío le dio agua cada mañana. La protegió del viento con sus alitas. Le cantó canciones para que no se sintiera sola en la tierra oscura.",
+      "Un día, dos días, tres días... nada. Pío empezó a desanimarse.",
+      "—¿Qué pasa si no crece nunca? —dijo con la voz triste.",
+      "La abuela lo abrazó con sus alas suaves. —Las cosas bonitas toman tiempo, Pío. Pero si las cuidas con cariño, siempre llegan.",
+      "Al cuarto día, Pío salió corriendo al jardín y vio algo increíble: un brotecito verde y pequeño asomaba entre la tierra.",
+      "—¡Creció! ¡Creció! —cantó Pío saltando de alegría.",
+      "Con el tiempo, el brotecito se convirtió en una planta grande llena de flores amarillas, igual de brillantes que el propio Pío.",
+      "Desde ese día, Pío supo que con paciencia, cuidado y mucho amor, todo lo bueno termina floreciendo. 🐥🌻"
+    ]
+  }
+];
+
+/* ==============================================
+   ILUSTRACIONES SVG DE PERSONAJES
+=============================================== */
+function svgOso(tamano = 100) {
+  return `<svg width="${tamano}" height="${tamano}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g class="cuerpo-oso">
+      <circle class="oreja-oso" cx="24" cy="28" r="16" fill="#F4A261"/>
+      <circle cx="24" cy="28" r="10" fill="#FDDCB5"/>
+      <circle class="oreja-oso" cx="76" cy="28" r="16" fill="#F4A261" style="animation-delay:.6s"/>
+      <circle cx="76" cy="28" r="10" fill="#FDDCB5"/>
+      <ellipse cx="50" cy="72" rx="28" ry="22" fill="#F4A261"/>
+      <circle cx="50" cy="44" r="28" fill="#F4A261"/>
+      <ellipse cx="50" cy="53" rx="14" ry="10" fill="#FDDCB5"/>
+      <ellipse cx="50" cy="47" rx="6" ry="4" fill="#8B5E3C"/>
+      <circle class="ojo-oso" cx="38" cy="38" r="5" fill="#3A2010"/>
+      <circle class="ojo-oso" cx="62" cy="38" r="5" fill="#3A2010" style="animation-delay:.3s"/>
+      <circle cx="40" cy="36" r="1.5" fill="#fff"/>
+      <circle cx="64" cy="36" r="1.5" fill="#fff"/>
+      <path d="M42 56 Q50 63 58 56" stroke="#6B4226" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="50" cy="78" rx="16" ry="10" fill="#FDDCB5"/>
+    </g>
+  </svg>`;
+}
+
+function svgConejo(tamano = 100) {
+  return `<svg width="${tamano}" height="${tamano}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g class="cuerpo-conejo">
+      <ellipse cx="37" cy="20" rx="9" ry="20" fill="#E8E8E8" class="oreja-conejo"/>
+      <ellipse cx="37" cy="20" rx="5" ry="15" fill="#FFB6C1" class="oreja-conejo"/>
+      <ellipse cx="63" cy="20" rx="9" ry="20" fill="#E8E8E8" class="oreja-conejo" style="animation-delay:.4s"/>
+      <ellipse cx="63" cy="20" rx="5" ry="15" fill="#FFB6C1" class="oreja-conejo" style="animation-delay:.4s"/>
+      <ellipse cx="50" cy="72" rx="26" ry="20" fill="#E8E8E8"/>
+      <circle cx="50" cy="50" r="26" fill="#E8E8E8"/>
+      <ellipse cx="50" cy="60" rx="12" ry="8" fill="#fff"/>
+      <ellipse cx="50" cy="57" rx="4" ry="3" fill="#FFB6C1"/>
+      <circle cx="40" cy="45" r="4.5" fill="#3A3A3A"/>
+      <circle cx="60" cy="45" r="4.5" fill="#3A3A3A"/>
+      <circle cx="41.5" cy="43.5" r="1.5" fill="#fff"/>
+      <circle cx="61.5" cy="43.5" r="1.5" fill="#fff"/>
+      <path d="M44 63 Q50 68 56 63" stroke="#CC7A8C" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="28" cy="80" r="7" fill="#fff" opacity=".6"/>
+    </g>
+  </svg>`;
+}
+
+function svgEstrella(tamano = 100) {
+  return `<svg width="${tamano}" height="${tamano}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g class="estrellita">
+      <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" fill="#FFD166" stroke="#F4A261" stroke-width="2"/>
+      <circle cx="50" cy="50" r="14" fill="#FFF0A0"/>
+      <circle cx="44" cy="46" r="3.5" fill="#8B6500"/>
+      <circle cx="56" cy="46" r="3.5" fill="#8B6500"/>
+      <path d="M44 56 Q50 61 56 56" stroke="#8B6500" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="45" cy="44" r="1.2" fill="#fff"/>
+      <circle cx="57" cy="44" r="1.2" fill="#fff"/>
+      <!-- destellos -->
+      <line x1="50" y1="85" x2="50" y2="95" stroke="#FFD166" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+      <line x1="15" y1="50" x2="5"  y2="50" stroke="#FFD166" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+      <line x1="85" y1="50" x2="95" y2="50" stroke="#FFD166" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+    </g>
+  </svg>`;
+}
+
+function svgPollito(tamano = 100) {
+  return `<svg width="${tamano}" height="${tamano}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="50" cy="75" rx="22" ry="16" fill="#FFD166"/>
+    <ellipse cx="35" cy="70" rx="8" ry="12" fill="#FFD166" class="ala-pollito"/>
+    <ellipse cx="65" cy="70" rx="8" ry="12" fill="#F4A261" class="ala-pollito" style="animation-delay:.3s"/>
+    <g class="cabeza-pollito">
+      <circle cx="50" cy="45" r="24" fill="#FFD166"/>
+      <polygon points="50,54 56,62 44,62" fill="#FF8C00"/>
+      <circle cx="41" cy="39" r="5" fill="#3A2010"/>
+      <circle cx="59" cy="39" r="5" fill="#3A2010"/>
+      <circle cx="42.5" cy="37.5" r="1.8" fill="#fff"/>
+      <circle cx="60.5" cy="37.5" r="1.8" fill="#fff"/>
+      <!-- cresta -->
+      <ellipse cx="42" cy="23" rx="5" ry="8" fill="#FF5A5F" transform="rotate(-15,42,23)"/>
+      <ellipse cx="50" cy="20" rx="5" ry="9" fill="#FF5A5F"/>
+      <ellipse cx="58" cy="23" rx="5" ry="8" fill="#FF5A5F" transform="rotate(15,58,23)"/>
+    </g>
+    <!-- patitas -->
+    <line x1="40" y1="90" x2="35" y2="100" stroke="#FF8C00" stroke-width="3" stroke-linecap="round"/>
+    <line x1="60" y1="90" x2="65" y2="100" stroke="#FF8C00" stroke-width="3" stroke-linecap="round"/>
+  </svg>`;
+}
+
+/* Devuelve la SVG según el personaje */
+function obtenerSVG(personaje, tamano) {
+  switch(personaje) {
+    case 'oso':     return svgOso(tamano);
+    case 'conejo':  return svgConejo(tamano);
+    case 'estrella':return svgEstrella(tamano);
+    case 'pollito': return svgPollito(tamano);
+    default:        return svgOso(tamano);
+  }
+}
+
+/* ==============================================
+   CONSTRUIR TARJETAS EN EL GRID
+=============================================== */
+const grid = document.getElementById('grid-cuentos');
+
+CUENTOS.forEach(cuento => {
+  const tarjeta = document.createElement('div');
+  tarjeta.className = 'tarjeta-cuento';
+  tarjeta.setAttribute('role', 'button');
+  tarjeta.setAttribute('tabindex', '0');
+  tarjeta.setAttribute('aria-label', `Abrir cuento: ${cuento.titulo}`);
+
+  tarjeta.innerHTML = `
+    <div class="ilustracion-tarjeta">${obtenerSVG(cuento.personaje, 100)}</div>
+    <h3>${cuento.titulo}</h3>
+    <p>${cuento.descripcion}</p>
+    <span class="badge-edad">👶 ${cuento.edad}</span>
+  `;
+
+  tarjeta.addEventListener('click', () => abrirCuento(cuento));
+  tarjeta.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') abrirCuento(cuento); });
+  grid.appendChild(tarjeta);
+});
+
+/* ==============================================
+   NAVEGACIÓN ENTRE PANTALLAS
+=============================================== */
+const pantallaLista  = document.getElementById('pantalla-lista');
+const pantallaCuento = document.getElementById('pantalla-cuento');
+const tituloCuento   = document.getElementById('titulo-cuento-abierto');
+const textoCuento    = document.getElementById('texto-cuento');
+const ilustracionGrande = document.getElementById('ilustracion-cuento-grande');
+
+function abrirCuento(cuento) {
+  pantallaLista.style.display  = 'none';
+  pantallaCuento.style.display = 'block';
+
+  tituloCuento.textContent = cuento.titulo;
+  ilustracionGrande.innerHTML = obtenerSVG(cuento.personaje, 130);
+
+  // Renderizar párrafos con IDs para resaltado
+  textoCuento.innerHTML = cuento.texto.map((p, i) =>
+    `<p id="parrafo-${i}">${p}</p>`
+  ).join('');
+
+  detenerVoz();
+  // Guardar cuento activo
+  cuentoActivo = cuento;
+
+  // Scroll suave al inicio
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('btn-volver').addEventListener('click', () => {
+  detenerVoz();
+  pantallaCuento.style.display = 'none';
+  pantallaLista.style.display  = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ==============================================
+   MODO NOCHE
+=============================================== */
+const btnTema = document.getElementById('btn-tema');
+let modoNoche = false;
+
+btnTema.addEventListener('click', () => {
+  modoNoche = !modoNoche;
+  document.documentElement.setAttribute('data-tema', modoNoche ? 'noche' : '');
+  btnTema.textContent = modoNoche ? '☀️' : '🌙';
+  btnTema.setAttribute('aria-label', modoNoche ? 'Cambiar a modo día' : 'Cambiar a modo noche');
+});
+
+/* ==============================================
+   NARRACIÓN CON WEB SPEECH API
+=============================================== */
+let cuentoActivo  = null;
+let utterance     = null;
+let leyendo       = false;
+let pausado       = false;
+let parrafoActual = 0;
+let textoCompleto = '';
+let parrafos      = [];
+
+const btnPlay   = document.getElementById('btn-play');
+const btnPausa  = document.getElementById('btn-pausa');
+const btnStop   = document.getElementById('btn-stop');
+const barraProgreso = document.getElementById('barra-progreso');
+
+/* Elegir la mejor voz disponible en español */
+function elegirVoz() {
+  const voces = speechSynthesis.getVoices();
+  // Preferir voces en español femeninas suaves
+  const prioridad = [
+    v => v.lang.startsWith('es') && /google/i.test(v.name),
+    v => v.lang.startsWith('es') && /female|mujer|femenin/i.test(v.name),
+    v => v.lang.startsWith('es'),
+    v => v.lang.startsWith('es') || v.default,
+  ];
+  for (const filtro of prioridad) {
+    const voz = voces.find(filtro);
+    if (voz) return voz;
+  }
+  return voces[0] || null;
+}
+
+function actualizarBotones() {
+  btnPlay.disabled  = leyendo && !pausado;
+  btnPausa.disabled = !leyendo || pausado;
+  btnStop.disabled  = !leyendo && !pausado;
+}
+
+function resaltarParrafo(idx) {
+  document.querySelectorAll('.parrafo-activo').forEach(el => el.classList.remove('parrafo-activo'));
+  const p = document.getElementById(`parrafo-${idx}`);
+  if (p) {
+    p.classList.add('parrafo-activo');
+    p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  // Barra de progreso
+  if (cuentoActivo) {
+    barraProgreso.style.width = `${((idx + 1) / cuentoActivo.texto.length) * 100}%`;
+  }
+}
+
+function leerParrafo(idx) {
+  if (!cuentoActivo || idx >= cuentoActivo.texto.length) {
+    // Fin del cuento
+    leyendo = false;
+    pausado = false;
+    actualizarBotones();
+    barraProgreso.style.width = '100%';
+    document.querySelectorAll('.parrafo-activo').forEach(el => el.classList.remove('parrafo-activo'));
+    return;
+  }
+
+  parrafoActual = idx;
+  resaltarParrafo(idx);
+
+  utterance = new SpeechSynthesisUtterance(cuentoActivo.texto[idx]);
+  utterance.voice = elegirVoz();
+  utterance.rate  = 0.82;   // velocidad moderada para niños
+  utterance.pitch = 1.1;    // voz ligeramente aguda y cálida
+  utterance.lang  = 'es-ES';
+
+  utterance.onend = () => {
+    if (leyendo) leerParrafo(idx + 1);
+  };
+  utterance.onerror = () => {
+    leyendo = false;
+    actualizarBotones();
+  };
+
+  speechSynthesis.speak(utterance);
+}
+
+btnPlay.addEventListener('click', () => {
+  if (!cuentoActivo) return;
+
+  if (pausado) {
+    // Reanudar
+    speechSynthesis.resume();
+    leyendo = true;
+    pausado = false;
+  } else {
+    // Iniciar desde el principio
+    speechSynthesis.cancel();
+    leyendo = true;
+    pausado = false;
+    barraProgreso.style.width = '0%';
+    leerParrafo(0);
+  }
+  actualizarBotones();
+});
+
+btnPausa.addEventListener('click', () => {
+  if (leyendo && !pausado) {
+    speechSynthesis.pause();
+    pausado = true;
+    leyendo = false;
+    actualizarBotones();
+  }
+});
+
+btnStop.addEventListener('click', detenerVoz);
+
+function detenerVoz() {
+  speechSynthesis.cancel();
+  leyendo = false;
+  pausado = false;
+  parrafoActual = 0;
+  barraProgreso.style.width = '0%';
+  document.querySelectorAll('.parrafo-activo').forEach(el => el.classList.remove('parrafo-activo'));
+  actualizarBotones();
+}
+
+// Algunos navegadores cargan las voces de forma asíncrona
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = () => {};
+}
+</script>
+
+</body>
+</html>
