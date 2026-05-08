@@ -821,5 +821,357 @@
   });
 
 </script>
+
+<!-- ══════════════════════════════════════
+     BOTÓN FLOTANTE DE AYUDA ❓
+══════════════════════════════════════ -->
+
+<style>
+  /* ── Botón flotante ── */
+  #btn-ayuda {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--rojo), var(--naranja));
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 900;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(255,90,95,.45);
+    z-index: 9000;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .2s, box-shadow .2s;
+    font-family: 'Baloo 2', cursive;
+  }
+  #btn-ayuda:hover { transform: scale(1.12) rotate(-8deg); box-shadow: 0 10px 32px rgba(255,90,95,.55); }
+
+  /* ── Overlay ── */
+  #ayuda-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(20,10,30,.55);
+    backdrop-filter: blur(4px);
+    z-index: 9001;
+    animation: fadeIn .3s ease;
+  }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  /* ── Panel ── */
+  #ayuda-panel {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(95vw, 780px);
+    max-height: 88vh;
+    background: var(--tarjeta);
+    border-radius: 28px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.3);
+    z-index: 9002;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    animation: slideUp .35s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp { from{opacity:0;transform:translate(-50%,-46%)} to{opacity:1;transform:translate(-50%,-50%)} }
+
+  /* ── Cabecera panel ── */
+  .ayuda-header {
+    background: linear-gradient(135deg, var(--rojo), var(--naranja));
+    padding: 22px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .ayuda-header h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.5rem;
+    color: #fff;
+    font-weight: 800;
+  }
+  .ayuda-header p { color: rgba(255,255,255,.85); font-size: .88rem; margin-top: 2px; }
+  #btn-cerrar-ayuda {
+    background: rgba(255,255,255,.2);
+    border: none; border-radius: 50%;
+    width: 36px; height: 36px;
+    color: #fff; font-size: 1.1rem;
+    cursor: pointer; flex-shrink: 0;
+    transition: background .2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btn-cerrar-ayuda:hover { background: rgba(255,255,255,.35); }
+
+  /* ── Tabs ── */
+  .ayuda-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--fondo);
+    flex-shrink: 0;
+    background: var(--tarjeta);
+    overflow-x: auto;
+  }
+  .ayuda-tab {
+    flex: 1; min-width: 120px;
+    padding: 14px 10px;
+    border: none; background: transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: .85rem; font-weight: 700;
+    color: var(--cafe);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: color .2s, border-color .2s;
+    white-space: nowrap;
+  }
+  .ayuda-tab.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .ayuda-tab:hover { color: var(--rojo); }
+
+  /* ── Contenido tabs ── */
+  .ayuda-cuerpo {
+    overflow-y: auto;
+    padding: 24px 28px 28px;
+    flex: 1;
+  }
+  .ayuda-seccion { display: none; }
+  .ayuda-seccion.activa { display: block; animation: aparecer .3s ease; }
+
+  /* ── Estilos internos del panel ── */
+  .ayuda-cuerpo h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.15rem; color: var(--rojo);
+    margin: 0 0 10px;
+  }
+  .ayuda-cuerpo p { font-size: .92rem; line-height: 1.7; color: var(--texto); margin-bottom: 10px; }
+  .ayuda-cuerpo .paso-ayuda {
+    display: flex; gap: 12px; align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .paso-ayuda .num {
+    min-width: 30px; height: 30px;
+    background: var(--rojo); color: #fff;
+    border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 800; font-size: .9rem; flex-shrink: 0;
+  }
+  .paso-ayuda .desc { padding-top: 4px; font-size: .9rem; line-height: 1.6; color: var(--texto); }
+  .ayuda-cuerpo .info-box {
+    background: rgba(77,150,255,.1);
+    border-left: 4px solid var(--azul);
+    border-radius: 0 10px 10px 0;
+    padding: 10px 14px;
+    font-size: .88rem;
+    color: var(--texto);
+    margin: 12px 0;
+  }
+  .ayuda-cuerpo .info-box strong { color: var(--azul); }
+
+  .tabla-ayuda { width: 100%; border-collapse: collapse; font-size: .85rem; margin: 12px 0; }
+  .tabla-ayuda th { background: var(--rojo); color: #fff; padding: 8px 10px; text-align: left; }
+  .tabla-ayuda td { padding: 7px 10px; border-bottom: 1px solid var(--fondo); color: var(--texto); }
+  .tabla-ayuda tr:nth-child(even) td { background: var(--fondo); }
+
+  /* ── Tarjetas guía rápida ── */
+  .grid-rapido-ayuda {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .card-rapido-ayuda {
+    background: var(--fondo);
+    border: 2px solid var(--amarillo);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+  }
+  .card-rapido-ayuda .ic { font-size: 1.8rem; margin-bottom: 4px; }
+  .card-rapido-ayuda h4 { font-family:'Baloo 2',cursive; font-size:.95rem; color:var(--rojo); margin-bottom:3px; }
+  .card-rapido-ayuda p  { font-size:.82rem; color:var(--cafe); line-height:1.4; }
+
+  /* ── Sección video ── */
+  .video-placeholder {
+    background: var(--fondo);
+    border: 3px dashed var(--rojo);
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    margin: 16px 0;
+  }
+  .video-placeholder .ic { font-size: 3rem; margin-bottom: 8px; }
+  .video-placeholder h4 { font-family:'Baloo 2',cursive; font-size:1.1rem; color:var(--rojo); margin-bottom:6px; }
+  .video-placeholder p  { font-size:.88rem; color:var(--cafe); margin-bottom:14px; }
+  .video-placeholder a  {
+    display: inline-block;
+    background: var(--rojo); color: #fff;
+    padding: 10px 24px; border-radius: 50px;
+    font-weight: 700; font-size:.9rem;
+    text-decoration: none;
+    transition: transform .2s;
+  }
+  .video-placeholder a:hover { transform: scale(1.05); }
+
+  /* ── iframe video (cuando se agregue) ── */
+  .video-frame {
+    width: 100%; aspect-ratio: 16/9;
+    border-radius: 14px; border: none;
+    margin: 12px 0;
+    box-shadow: 0 4px 20px var(--sombra);
+  }
+
+  @media (max-width: 500px) {
+    .grid-rapido-ayuda { grid-template-columns: 1fr; }
+    .ayuda-cuerpo { padding: 16px; }
+    #ayuda-panel { border-radius: 20px; }
+    .ayuda-header { padding: 16px 18px; }
+  }
+</style>
+
+<!-- Botón flotante -->
+<button id="btn-ayuda" aria-label="Abrir ayuda" title="Centro de ayuda">❓</button>
+
+<!-- Overlay -->
+<div id="ayuda-overlay"></div>
+
+<!-- Panel de ayuda -->
+<div id="ayuda-panel" role="dialog" aria-label="Centro de ayuda CantaCuentos" style="display:none">
+
+  <!-- Cabecera -->
+  <div class="ayuda-header">
+    <div>
+      <h2>🌟 Centro de Ayuda</h2>
+      <p>Todo lo que necesitas para usar CantaCuentos</p>
+    </div>
+    <button id="btn-cerrar-ayuda" aria-label="Cerrar ayuda">✕</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ayuda-tabs">
+    <button class="ayuda-tab activo" onclick="cambiarTabAyuda('rapida')">⚡ Inicio Rápido</button>
+    <button class="ayuda-tab" onclick="cambiarTabAyuda('manual')">📄 Manual</button>
+    <button class="ayuda-tab" onclick="cambiarTabAyuda('video')">🎬 Video</button>
+    <button class="ayuda-tab" onclick="cambiarTabAyuda('linea')">💬 Ayuda en Línea</button>
+  </div>
+
+  <!-- Cuerpo -->
+  <div class="ayuda-cuerpo">
+
+    <!-- ── TAB 1: INICIO RÁPIDO ── -->
+    <div class="ayuda-seccion activa" id="tab-rapida">
+      <h3>⚡ Guía de Inicio Rápido</h3>
+      <p>¿Primera vez en CantaCuentos? Empieza a leer en menos de 2 minutos:</p>
+      <div class="paso-ayuda"><div class="num">1</div><div class="desc">Abre Chrome e ingresa a <strong>aleth7474-lab.github.io/canta-cuentos</strong></div></div>
+      <div class="paso-ayuda"><div class="num">2</div><div class="desc">Haz clic en <strong>"Registrarse"</strong> → llena tu nombre, correo y contraseña → <strong>"🌟 Crear cuenta"</strong>.</div></div>
+      <div class="paso-ayuda"><div class="num">3</div><div class="desc">Verás tu panel con tu <strong>🔥 racha de días</strong> y <strong>📚 cuentos leídos</strong>.</div></div>
+      <div class="paso-ayuda"><div class="num">4</div><div class="desc">Haz clic en cualquier tarjeta de cuento para abrirlo.</div></div>
+      <div class="paso-ayuda"><div class="num">5</div><div class="desc">Presiona <strong>"▶ Escuchar"</strong> y el narrador leerá el cuento en voz alta resaltando cada párrafo.</div></div>
+      <div class="paso-ayuda"><div class="num">6</div><div class="desc">Usa <strong>"← Volver"</strong> para regresar al catálogo y elegir otro cuento.</div></div>
+      <div class="info-box"><strong>💡 Tip:</strong> Entra todos los días para mantener tu 🔥 racha activa. ¡Intenta llegar a 7 días seguidos!</div>
+      <br/>
+      <img src="https://drive.google.com/uc?export=view&id=1jnj-8-gSNDQk7BuUdRE_cPMcZLumQXEz" alt="Guía de inicio rápido" style="width:100%;border-radius:14px;margin:12px 0;box-shadow:0 4px 16px rgba(0,0,0,.1);"/>
+      <div class="grid-rapido-ayuda">
+        <div class="card-rapido-ayuda"><div class="ic">🔐</div><h4>Registro</h4><p>Crea tu cuenta con nombre, correo y contraseña.</p></div>
+        <div class="card-rapido-ayuda"><div class="ic">📚</div><h4>Elige un cuento</h4><p>4 cuentos originales con personajes animados.</p></div>
+        <div class="card-rapido-ayuda"><div class="ic">🔊</div><h4>Escucha</h4><p>El narrador lee en voz alta párrafo por párrafo.</p></div>
+        <div class="card-rapido-ayuda"><div class="ic">🌙</div><h4>Modo noche</h4><p>Activa el modo oscuro con el botón 🌙 arriba.</p></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: MANUAL PDF ── -->
+    <div class="ayuda-seccion" id="tab-manual">
+      <h3>📄 Manual de Usuario Completo</h3>
+      <p>El manual completo de CantaCuentos incluye todo lo que necesitas saber sobre la aplicación, con instrucciones detalladas, tablas y ejemplos.</p>
+
+      <div class="info-box"><strong>📋 Contenido del manual:</strong> Introducción · Registro e inicio de sesión · Interfaz principal · Lectura de cuentos · Cuentos disponibles · Modo noche · Preguntas frecuentes · Errores comunes · Relación con ISO 25010.</div>
+
+      <table class="tabla-ayuda">
+        <tr><th>Sección</th><th>Descripción</th></tr>
+        <tr><td>🔐 Acceso</td><td>Cómo registrarse e iniciar sesión paso a paso.</td></tr>
+        <tr><td>🖥️ Interfaz</td><td>Panel de usuario, racha, catálogo y botones.</td></tr>
+        <tr><td>🔊 Narrador</td><td>Controles ▶ ⏸ ⏹ y barra de progreso.</td></tr>
+        <tr><td>📚 Cuentos</td><td>Los 4 cuentos disponibles con edad y valor.</td></tr>
+        <tr><td>❗ Errores</td><td>Solución a los problemas más comunes.</td></tr>
+      </table>
+
+      <div style="text-align:center; margin-top:16px;">
+        <a href="https://drive.google.com/file/d/1uAF_qvWhi7o1XZT3B5ARtMah2jwvOgCT/view?usp=sharing"
+           target="_blank"
+           style="display:inline-block;background:var(--rojo);color:#fff;padding:12px 28px;border-radius:50px;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 4px 16px rgba(255,90,95,.3);">
+          📥 Descargar Manual PDF
+        </a>
+        <p style="font-size:.78rem;color:var(--cafe);margin-top:8px;opacity:.7;">Si el link no funciona, descarga el manual desde el repositorio de GitHub.</p>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: VIDEO TUTORIAL ── -->
+    <div class="ayuda-seccion" id="tab-video">
+      <h3>🎬 Video Tutorial</h3>
+      <p>Aprende a usar CantaCuentos en 2 minutos con este video tutorial narrado en español.</p>
+
+      <iframe class="video-frame" src="https://www.youtube.com/embed/YOzWltTobsw" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+      <div class="info-box"><strong>🎯 ¿Qué muestra el video?</strong> Registro de usuario · Panel con racha · Apertura de un cuento · Narrador de voz · Modo noche · Cierre de sesión.</div>
+    </div>
+
+    <!-- ── TAB 4: AYUDA EN LÍNEA ── -->
+    <div class="ayuda-seccion" id="tab-linea">
+      <h3>💬 Ayuda en Línea</h3>
+      <p>Consulta rápida sobre cada función de CantaCuentos:</p>
+
+      <table class="tabla-ayuda">
+        <tr><th>Elemento</th><th>¿Para qué sirve?</th></tr>
+        <tr><td>🔐 Registrarse / Entrar</td><td>Crea tu cuenta o inicia sesión con correo y contraseña para guardar tu progreso.</td></tr>
+        <tr><td>🔥 Racha de días</td><td>Muestra cuántos días consecutivos has ingresado. Si fallas un día, vuelve a 1.</td></tr>
+        <tr><td>📚 Cuentos leídos</td><td>Contador de cuántos cuentos has abierto. Se actualiza automáticamente.</td></tr>
+        <tr><td>✅ Badge "Leído"</td><td>Aparece en los cuentos que ya has visitado anteriormente.</td></tr>
+        <tr><td>▶ Escuchar</td><td>Inicia la narración de voz. El texto se resalta párrafo por párrafo.</td></tr>
+        <tr><td>⏸ Pausar</td><td>Pausa la voz sin perder el lugar en el texto.</td></tr>
+        <tr><td>⏹ Detener</td><td>Para la narración y reinicia la barra de progreso.</td></tr>
+        <tr><td>🌙 Modo noche</td><td>Cambia la interfaz a colores oscuros para proteger los ojos.</td></tr>
+        <tr><td>← Volver</td><td>Regresa al catálogo de cuentos sin perder la sesión.</td></tr>
+        <tr><td>Salir 👋</td><td>Cierra la sesión del usuario actual de forma segura.</td></tr>
+      </table>
+
+      <h3 style="margin-top:20px;">❗ Solución rápida de problemas</h3>
+      <table class="tabla-ayuda">
+        <tr><th>Problema</th><th>Solución</th></tr>
+        <tr><td>No escucho la voz</td><td>Usa Google Chrome y haz clic en la página antes de presionar Escuchar.</td></tr>
+        <tr><td>Contraseña incorrecta</td><td>Verifica que no haya espacios y que el correo sea el correcto.</td></tr>
+        <tr><td>La racha volvió a 1</td><td>Pasaste un día sin ingresar. ¡Entra todos los días para mantenerla!</td></tr>
+        <tr><td>La página no carga</td><td>Verifica tu conexión a internet y recarga con F5.</td></tr>
+      </table>
+
+      <div class="info-box" style="margin-top:16px;"><strong>📧 ¿Necesitas más ayuda?</strong> Consulta el Manual PDF completo en la pestaña anterior o revisa el video tutorial.</div>
+    </div>
+
+  </div><!-- /ayuda-cuerpo -->
+</div><!-- /ayuda-panel -->
+
+<script>
+  /* ── Abrir / cerrar panel de ayuda ── */
+  const btnAyuda       = document.getElementById('btn-ayuda');
+  const ayudaOverlay   = document.getElementById('ayuda-overlay');
+  const ayudaPanel     = document.getElementById('ayuda-panel');
+  const btnCerrarAyuda = document.getElementById('btn-cerrar-ayuda');
+
+  function abrirAyuda() {
+    ayudaOverlay.style.display = 'block';
+    ayudaPanel.style.display   = 'flex';
+  }
+  function cerrarAyuda() {
+    ayudaOverlay.style.display = 'none';
+    ayudaPanel.style.display   = 'none';
+  }
+
+  btnAyuda.addEventListener('click', abrirAyuda);
+  btnCerrarAyuda.addEventListener('click', cerrarAyuda);
+  ayudaOverlay.addEventListener('click', cerrarAyuda);
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarAyuda(); });
+
+  /* ── Cambiar tabs ── */
+  window.cambiarTabAyuda = (nombre) => {
+    document.querySelectorAll('.ayuda-tab').forEach(t => t.classList.remove('activo'));
+    document.querySelectorAll('.ayuda-seccion').forEach(s => s.classList.remove('activa'));
+    document.getElementById('tab-' + nombre).classList.add('activa');
+    event.target.classList.add('activo');
+  };
+</script>
 </body>
 </html>
